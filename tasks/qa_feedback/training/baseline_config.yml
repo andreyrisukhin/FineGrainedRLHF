@@ -1,7 +1,7 @@
 model:
   policy_model:
-    ckpt: ./tasks/qa_feedback/model_outputs/t5-large-1k-train
-    input_padding_side: right
+    ckpt: ./tasks/qa_feedback/model_outputs/t5-large-1k-train #./tasks/qa_feedback/model_outputs/baseline # Attempt to load previous checkpoint between sruns #./tasks/qa_feedback/model_outputs/t5-large-1k-train
+    input_padding_side: right # text is L->R, compare two diff len texts with padding on R.
     train_generation_kwargs:
       do_sample: True
       top_k: 20
@@ -13,7 +13,7 @@ model:
   value_model:
     ckpt: t5-base
     freeze_value_model: False
-    policy_value_sharing: False
+    policy_value_sharing: False # train_baseline.py 187, 211
   
 
 reward:
@@ -30,9 +30,9 @@ env:
   train_num_samples_per_input: 4
 
 ppo:
-  kl_coef: 0.2
-  lam: 0.99
-  gamma: 1.0
+  kl_coef: 0.2 # kl divergence := difference between two probability distributions
+  lam: 0.99 # Also scales some gammas per https://arxiv.org/pdf/1707.06347.pdf
+  gamma: 1.0 # Learned state value function V(s_t) scalar
   pg_coef: 1.0
   vf_coef: 1.0
   cliprange: 0.2
@@ -40,23 +40,23 @@ ppo:
   whiten_rewards: True
 
 train:
-  total_episodes: 80000
+  total_episodes: 80000 # 80000 may be too much; reduce this if need to run faster
   eval_interval: 50
-  sampling_batch_size_per_card: 8
-  training_batch_size_per_card: 4
+  sampling_batch_size_per_card: 4 #8
+  training_batch_size_per_card: 2 #4
   lr: 0.00001
   n_warmup_steps: 100
   n_ppo_epoch_per_rollout: 4
   kl_threshold: 10.0
-  clip_grad: False
+  clip_grad: True # False previously; now with True makes it reproducible
   max_grad_norm: 0.5
   seed: 42
-  cuda_deterministic: True
+  cuda_deterministic: False # True makes it reproducible, and making False leads to speedup
 
 logging:
   run_name: baseline
   wandb_log: True
-  wandb_entity: your-wandb-username
+  wandb_entity: andrey-risukhin
   wandb_project: RLHF
   log_interval: 1
   save_dir: tasks/qa_feedback/model_outputs/baseline

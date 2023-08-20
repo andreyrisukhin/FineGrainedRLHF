@@ -1,0 +1,37 @@
+The following values were not passed to `accelerate launch` and had defaults used instead:
+	`--dynamo_backend` was set to a value of `'no'`
+To avoid this warning pass in values for each of the problematic parameters or run `accelerate config`.
+INFO:__main__:Write to output directory: tasks/qa_feedback/model_outputs/fine_grained
+Traceback (most recent call last):
+  File "/mmfs1/gscratch/ark/risuka/finegraineval/FineGrainedRLHF/tasks/qa_feedback/training/train_finegrained.py", line 265, in <module>
+    main()
+  File "/mmfs1/gscratch/ark/risuka/finegraineval/FineGrainedRLHF/tasks/qa_feedback/training/train_finegrained.py", line 148, in main
+    tokenizer = transformers.AutoTokenizer.from_pretrained(args['model']['policy_model']['ckpt'], 
+  File "/gscratch/ark/risuka/miniconda/envs/dev/lib/python3.9/site-packages/transformers/models/auto/tokenization_auto.py", line 551, in from_pretrained
+    tokenizer_config = get_tokenizer_config(pretrained_model_name_or_path, **kwargs)
+  File "/gscratch/ark/risuka/miniconda/envs/dev/lib/python3.9/site-packages/transformers/models/auto/tokenization_auto.py", line 403, in get_tokenizer_config
+    resolved_config_file = cached_file(
+  File "/gscratch/ark/risuka/miniconda/envs/dev/lib/python3.9/site-packages/transformers/utils/hub.py", line 409, in cached_file
+    resolved_file = hf_hub_download(
+  File "/gscratch/ark/risuka/miniconda/envs/dev/lib/python3.9/site-packages/huggingface_hub/utils/_validators.py", line 114, in _inner_fn
+    validate_repo_id(arg_value)
+  File "/gscratch/ark/risuka/miniconda/envs/dev/lib/python3.9/site-packages/huggingface_hub/utils/_validators.py", line 166, in validate_repo_id
+    raise HFValidationError(
+huggingface_hub.utils._validators.HFValidationError: Repo id must be in the form 'repo_name' or 'namespace/repo_name': './tasks/qa_feedback/model_outputs/t5-large-1k-train'. Use `repo_type` argument if needed.
+Traceback (most recent call last):
+  File "/mmfs1/gscratch/ark/risuka/finegraineval/FineGrainedRLHF/tasks/qa_feedback/training/train_finegrained.py", line 265, in <module>
+    main()
+  File "/mmfs1/gscratch/ark/risuka/finegraineval/FineGrainedRLHF/tasks/qa_feedback/training/train_finegrained.py", line 148, in main
+    tokenizer = transformers.AutoTokenizer.from_pretrained(args['model']['policy_model']['ckpt'], 
+  File "/gscratch/ark/risuka/miniconda/envs/dev/lib/python3.9/site-packages/transformers/models/auto/tokenization_auto.py", line 551, in from_pretrained
+    tokenizer_config = get_tokenizer_config(pretrained_model_name_or_path, **kwargs)
+  File "/gscratch/ark/risuka/miniconda/envs/dev/lib/python3.9/site-packages/transformers/models/auto/tokenization_auto.py", line 403, in get_tokenizer_config
+    resolved_config_file = cached_file(
+  File "/gscratch/ark/risuka/miniconda/envs/dev/lib/python3.9/site-packages/transformers/utils/hub.py", line 409, in cached_file
+    resolved_file = hf_hub_download(
+  File "/gscratch/ark/risuka/miniconda/envs/dev/lib/python3.9/site-packages/huggingface_hub/utils/_validators.py", line 114, in _inner_fn
+    validate_repo_id(arg_value)
+  File "/gscratch/ark/risuka/miniconda/envs/dev/lib/python3.9/site-packages/huggingface_hub/utils/_validators.py", line 166, in validate_repo_id
+    raise HFValidationError(
+huggingface_hub.utils._validators.HFValidationError: Repo id must be in the form 'repo_name' or 'namespace/repo_name': './tasks/qa_feedback/model_outputs/t5-large-1k-train'. Use `repo_type` argument if needed.
+ERROR:torch.distributed.elastic.multiprocessing.api:failed (exitcode: 1) local_rank: 0 (pid: 33493) of binary: /gscratch/ark/risuka/miniconda/envs/dev/bin/python
