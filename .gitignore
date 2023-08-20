@@ -11,3 +11,8 @@ tasks/qa_feedback/data/NF-ERR_subsentence
 tasks/qa_feedback/model_outputs
 
 tasks/qa_feedback/reward_modeling/model_outputs/baseline_rm/pytorch_model.bin
+
+tasks/wmt/data 
+tasks/wmt/model_outputs
+
+tasks/wmt/reward_modeling/model_outputs/baseline_rm/pytorch_model.bin
