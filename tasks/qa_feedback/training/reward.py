@@ -626,3 +626,73 @@ class BaselineReward(BasicReward):
         })
         
         return output
+
+
+class RougeReward(BasicReward): # TODO customize the rest of the class
+    
+    def __init__(self,
+                 tokenizer,
+                 baseline_model_ckpt,
+                 kl_coef,
+                 baseline_reward_mean = 0.0,
+                 baseline_reward_std = 1.0,
+                 baseline_reward_bias = 0.0,
+                 baseline_reward_scale = 1.0,
+                ):
+        
+        super().__init__(kl_coef)
+
+        self.baseline_reward = PreferenceReward(tokenizer, 
+            baseline_model_ckpt, 
+            mean=baseline_reward_mean,
+            std=baseline_reward_std,
+            bias=baseline_reward_bias,
+            scale=baseline_reward_scale)
+        
+        self.nlp = spacy.load("en_core_web_sm")
+        
+   
+    def get_reward(self, 
+                   prompts_input_ids: torch.tensor, 
+                   prompts_attention_mask: torch.tensor, 
+                   generated_input_ids: torch.tensor, # (B, output_len)
+                   generated_attention_mask: torch.tensor, # (B, output_len)
+                   generated_texts: List[str],
+                   metadata=None, 
+                   override_gain=None, 
+                   override_bias=None):
+        
+        rewards = self.baseline_reward.get_reward(prompts_input_ids, prompts_attention_mask, 
+                                                generated_input_ids, generated_attention_mask, 
+                                                generated_texts, metadata)
+        
+        return {'rewards/raw': rewards}
+            
+        
+    def eval_metrics(self, 
+                prompts_input_ids: torch.tensor, 
+                prompts_attention_mask: torch.tensor, 
+                generated_input_ids: torch.tensor, # (B, output_len)
+                generated_attention_mask: torch.tensor, # (B, output_len)
+                generated_texts: List[str],
+                metadata=None, 
+                override_gain=None, 
+                override_bias=None):
+        
+        output = {}
+        baseline_rewards_output = self.get_reward(prompts_input_ids, prompts_attention_mask, 
+                                                generated_input_ids, generated_attention_mask, 
+                                                generated_texts, metadata)['rewards/raw']
+        # compute rouge scores
+        rouge_scores = get_rouge_scores(generated_texts, [m['references'] for m in metadata])
+        
+        # lens of generations
+        generation_lens = torch.sum(generated_attention_mask, dim=-1).tolist()
+        
+        output.update({
+            "eval/rouge": rouge_scores,
+            "eval/rewards": [np.sum(sublist) for sublist in baseline_rewards_output],
+            "eval/lengths": generation_lens
+        })
+        
+        return output
