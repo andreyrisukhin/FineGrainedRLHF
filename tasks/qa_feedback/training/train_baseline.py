@@ -24,7 +24,7 @@ from fgrlhf.policy import T5Policy
 from fgrlhf.value import T5Value
 from fgrlhf.utils import ensure_dir, set_seed, reduce_mean, reduce_sum, ceil_div, whiten, clamp
 
-from reward import BaselineReward
+from reward import RougeReward # Replace Baseline Reward with RougeReward
 
 logging.basicConfig(level=logging.ERROR)
 
@@ -194,7 +194,17 @@ def main():
     if not args['model']['value_model']['policy_value_sharing']:
         value.model, value.linear = accelerator.prepare(value.model, value.linear)
     
-    reward = BaselineReward(
+    # reward = BaselineReward(
+    #     tokenizer=tokenizer,
+    #     baseline_model_ckpt=args['reward']['baseline_model']['ckpt'],
+    #     kl_coef=args['ppo']['kl_coef'],
+    #     baseline_reward_mean = args['reward']['baseline_model']['mean'],
+    #     baseline_reward_std = args['reward']['baseline_model']['std'],
+    #     baseline_reward_bias = args['reward']['baseline_model']['bias'],
+    #     baseline_reward_scale = args['reward']['baseline_model']['scale'],
+    # )
+    
+    reward = RougeReward(
         tokenizer=tokenizer,
         baseline_model_ckpt=args['reward']['baseline_model']['ckpt'],
         kl_coef=args['ppo']['kl_coef'],
@@ -203,7 +213,7 @@ def main():
         baseline_reward_bias = args['reward']['baseline_model']['bias'],
         baseline_reward_scale = args['reward']['baseline_model']['scale'],
     )
-    
+
     # prepare reward models
     reward.baseline_reward.model = accelerator.prepare(reward.baseline_reward.model)
     

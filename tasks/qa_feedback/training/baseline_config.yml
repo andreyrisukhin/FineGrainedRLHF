@@ -25,7 +25,7 @@ reward:
     scale: 1.0
 
 env:
-  max_input_len: 1024
+  max_input_len: 512 # 1024
   max_generated_len: 200
   train_num_samples_per_input: 4
 
@@ -54,9 +54,9 @@ train:
   cuda_deterministic: False # True makes it reproducible, and making False leads to speedup
 
 logging:
-  run_name: baseline
+  run_name: rouge_baseline_corrected_reward # baseline
   wandb_log: True
   wandb_entity: andrey-risukhin
   wandb_project: RLHF
   log_interval: 1
-  save_dir: tasks/qa_feedback/model_outputs/baseline
+  save_dir: tasks/qa_feedback/model_outputs/rouge_baseline

@@ -628,7 +628,14 @@ class BaselineReward(BasicReward):
         return output
 
 
-class RougeReward(BasicReward): # TODO customize the rest of the class
+
+# from rouge_score import rouge_scorer
+
+# scorer = rouge_scorer.RougeScorer(['rouge1', 'rougeL'], use_stemmer=True)
+# scores = scorer.score('The quick brown fox jumps over the lazy dog',
+#                       'The quick brown dog jumps on the log.')
+
+class RougeReward(BasicReward):
     
     def __init__(self,
                  tokenizer,
@@ -650,23 +657,69 @@ class RougeReward(BasicReward): # TODO customize the rest of the class
             scale=baseline_reward_scale)
         
         self.nlp = spacy.load("en_core_web_sm")
+
+        # prepare reward tokenizer
+        self.reward_tokenizer = AutoTokenizer.from_pretrained(baseline_model_ckpt)
         
-   
+    # From google's rouge repo: (because requirements.txt includes rouge-score==0.1.2)
+    #
+    # from rouge_score import rouge_scorer
+
+    # scorer = rouge_scorer.RougeScorer(['rouge1', 'rougeL'], use_stemmer=True)
+    # scores = scorer.score('The quick brown fox jumps over the lazy dog',
+    #                     'The quick brown dog jumps on the log.')
+
     def get_reward(self, 
                    prompts_input_ids: torch.tensor, 
                    prompts_attention_mask: torch.tensor, 
                    generated_input_ids: torch.tensor, # (B, output_len)
                    generated_attention_mask: torch.tensor, # (B, output_len)
                    generated_texts: List[str],
-                   metadata=None, 
-                   override_gain=None, 
-                   override_bias=None):
+                   metadata=None,
+                   ):
+        batch_reward_inputs = []
+
+        # Extract gold from metadata
+        # generated_texts are the parameter of tokenized 
+        # Pipe these both into Rouge
+
+        for batch_idx, (meta, gen_text) in enumerate(zip(metadata, generated_texts)):
+            reward_input = f"{' '.join(meta['prompt'].split())} answer: {gen_text}"
+            batch_reward_inputs.append(reward_input)
+
+        # get the reward
+        with torch.no_grad():
+            # to align with the token classification model
+            inputs =self.reward_tokenizer(batch_reward_inputs, 
+                                          truncation=True, padding=True, 
+                                          return_tensors="pt")
+            inputs = inputs.to(self.model.device)
+            outputs = self.model(**inputs)
+            sequence_level_reward = outputs['logits'].squeeze(-1).tolist() 
         
-        rewards = self.baseline_reward.get_reward(prompts_input_ids, prompts_attention_mask, 
-                                                generated_input_ids, generated_attention_mask, 
-                                                generated_texts, metadata)
-        
-        return {'rewards/raw': rewards}
+
+        rouge_scores = get_rouge_scores(generated_texts, [m['references'] for m in metadata])
+
+
+        # align with generated texts, make it fine-grained
+        fine_grained_reward = [
+            [0.] * (l-1) + [r]
+            for r, l in zip(rouge_scores, torch.sum(generated_attention_mask, dim=1).tolist())
+        ] # We want no reward for begginign tokens, and only rouge on final, thus need to know length (l) of sequence; attn mask is 1 for real tokens, 0 for padding
+
+        # AR now cleans, deletes all unecessary pieces
+
+        # Rouge score does not require mean, var, by definition
+        # Take gold, generated answer and compare with Rouge
+
+        # RL assumption: everything before the final reward affects the final reward. That is why needed at end of sequence.
+        # Gold answer length not used (notice, l is the generated one only); thus give generated text + its rouge score for the RL to use
+        return fine_grained_reward # Look at ppo to see how this is used, and to understand why [[0...0, rouge_score]]
+
+        # AR outcomes: get a baseline model trained with rouge for Monday with Yushi (should start the training run today, Friday)
+        # Message HYAK chat about ssh issues
+
+        # return {'rewards/raw': rewards}
             
         
     def eval_metrics(self, 
@@ -685,7 +738,9 @@ class RougeReward(BasicReward): # TODO customize the rest of the class
                                                 generated_texts, metadata)['rewards/raw']
         # compute rouge scores
         rouge_scores = get_rouge_scores(generated_texts, [m['references'] for m in metadata])
-        
+        # Andrey, just directly use this line :)
+        # Gives list of rouge score, put this list as fgr output
+
         # lens of generations
         generation_lens = torch.sum(generated_attention_mask, dim=-1).tolist()
         
