@@ -18,7 +18,7 @@ model:
 
 reward:
   baseline_model:
-    ckpt: ./tasks/qa_feedback/model_outputs/baseline_rm
+    ckpt: ./tasks/qa_feedback/model_outputs/t5-large-1k-train_0.5_sft_0.5_rl #./tasks/qa_feedback/model_outputs/baseline_rm
     mean: 0.9224057369138402
     std: 1.5605590864042451
     bias: 0.0
@@ -54,9 +54,9 @@ train:
   cuda_deterministic: False # True makes it reproducible, and making False leads to speedup
 
 logging:
-  run_name: rouge_baseline_corrected_reward # baseline
+  run_name: rouge_sft_50_rl_100 #rouge_baseline_corrected_reward # baseline
   wandb_log: True
   wandb_entity: andrey-risukhin
   wandb_project: RLHF
   log_interval: 1
-  save_dir: tasks/qa_feedback/model_outputs/rouge_baseline
+  save_dir: tasks/qa_feedback/model_outputs/rouge_sft_50_rl_100

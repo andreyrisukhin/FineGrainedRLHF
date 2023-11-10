@@ -52,9 +52,9 @@ class TextGenDataset(Dataset):
         
         self.split = split
         self.dataset_fns = {
-            "train": "tasks/qa_feedback/data/train.json",
-            "dev": "tasks/qa_feedback/data/dev.json",
-            "test": "tasks/qa_feedback/data/test.json"
+            "train": "tasks/wmt/data/train.json",
+            "dev": "tasks/wmt/data/dev.json",
+            "test": "tasks/wmt/data/test.json"
         }
         
         self.n_card = 1
